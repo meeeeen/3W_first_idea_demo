@@ -65,6 +65,9 @@ const css = `
   .quick-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
   .quick-btn { background: transparent; border: 1px solid var(--border); color: var(--gray-light); padding: 6px 12px; font-size: 11px; font-family: 'Pretendard', sans-serif; cursor: pointer; transition: all 0.2s; }
   .quick-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .quick-cats { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .quick-cat-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--gray); letter-spacing: 0.15em; margin-bottom: 4px; }
+  .quick-cat-row { display: flex; gap: 6px; flex-wrap: wrap; }
   .scorer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .scorer-input-card { background: var(--card); border: 1px solid var(--border-dim); padding: 24px; }
   .scorer-input-card h3 { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--accent); letter-spacing: 0.2em; margin-bottom: 20px; }
@@ -111,7 +114,25 @@ const css = `
   }
 `;
 
-const QUICK = ["연차는 어떻게 신청해?", "슬랙 채널 구조 알려줘", "코드 리뷰 프로세스?", "복지 제도가 뭐가 있어?"];
+// 카테고리별 퀵 질문
+const QUICK_CATEGORIES = [
+  {
+    label: "🏢 회사 생활",
+    questions: ["점심시간이 몇 시야?", "탄력근무제 어떻게 써?", "야근하면 뭐 지원돼?"],
+  },
+  {
+    label: "🛠️ 업무 도구",
+    questions: ["슬랙 채널 구조 알려줘", "노션 어떻게 써?", "피그마 접근 권한은?"],
+  },
+  {
+    label: "📋 인사 / 복지",
+    questions: ["연차는 어떻게 신청해?", "복지 제도가 뭐가 있어?", "장비 신청 어떻게 해?"],
+  },
+  {
+    label: "💻 개발 프로세스",
+    questions: ["코드 리뷰 프로세스가 어떻게 돼?", "브랜치 전략이 어떻게 돼?", "배포는 누가 해?"],
+  },
+];
 
 function getCareItems(score) {
   if (score < 30) return [{ icon: "📱", title: "AI 힐링 앱 추천", desc: "명상 가이드 5분 · 수면 루틴 설정" }];
@@ -151,9 +172,89 @@ function ChatDemo() {
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  const systemPrompt = `당신은 ${company}의 AI 온보딩 어시스턴트입니다. 신규 입사자(직군: ${role})를 돕는 역할입니다.
-회사 정보: HR SaaS 업종 / 근무 09~18시 탄력근무 / 점심 12~13시 식대 월 10만원 / 연차 월 1일 발생(HR 시스템에서 신청) / 슬랙 채널: #general #dev #design #hr #lunch / 코드리뷰: PR에 2명 이상 approve 필요 / 복지: 노트북 선택 지원·도서비 월 3만원·야근 야식 지원 / 툴: Notion·Slack·Figma·GitHub·Jira
-친절하고 명확하게, 한국어로, 3~5문장 이내로 답변하세요. 불확실한 정보는 HR 담당자 확인을 권유하세요.`;
+  const systemPrompt = `당신은 ${company}의 AI 온보딩 어시스턴트입니다. 신규 입사자(직군: ${role})가 회사에 빠르게 적응할 수 있도록 돕는 역할입니다.
+
+## 회사 기본 정보
+- 회사명: ${company} / 업종: HR SaaS (인사관리 소프트웨어 플랫폼)
+- 주소: 서울시 강남구 테헤란로 (출입증은 입사 당일 HR에서 수령)
+- 공식 홈페이지·서비스: 사내 Notion에서 확인 가능
+
+## 근무 제도
+- 근무 시간: 기본 09:00~18:00 (1시간 휴게), 주 40시간
+- 탄력근무제: 코어타임 10:00~16:00 내 자유 출퇴근 가능 (팀장 사전 협의 필요)
+- 재택근무: 팀별 정책 상이, 팀장 및 HR 확인 필요
+- 초과근무: 사전 승인 후 야근 야식 지원 (1인 2만원), 수당은 연봉 계약서 기준
+
+## 점심·식사
+- 점심시간: 12:00~13:00
+- 식대 지원: 월 10만원 (법인카드 or 식비 청구)
+- 팀별 점심 모임: #lunch 슬랙 채널에서 자율 모집
+
+## 연차·휴가
+- 연차 발생: 입사 1년 미만 — 월 1일 발생 (매월 1일 자동 지급)
+- 연차 신청: HR SaaS 시스템 내 [휴가 신청] 메뉴에서 신청 → 팀장 자동 알림
+- 반차: 오전(09~13시) / 오후(13~18시) 구분, 0.5일 차감
+- 병가·경조사: HR 담당자에게 별도 문의
+
+## 복지 제도
+- 장비: 노트북 기종 선택 지원 (Mac/Windows), 모니터·키보드 등 주변기기 신청 가능
+- 도서비: 월 3만원 법인카드 지원 (업무 관련 도서·강의)
+- 건강검진: 연 1회 지원 (기간 내 자율 예약)
+- 야근 야식: 초과근무 승인 후 팀장 신청
+- 경조사비: 결혼·출산·조사 등 경조비 지급 (HR 문의)
+- 자기계발비: 반기별 지원 (세부 한도 HR 확인)
+
+## 업무 도구
+- 문서/위키: Notion (입사 당일 초대 메일 발송)
+- 소통: Slack (채널 구조 아래 참고)
+- 디자인: Figma (디자이너·PM 기본 지급, 타 직군은 뷰어 권한)
+- 코드: GitHub (개발팀, 입사 당일 조직 초대)
+- 이슈 관리: Jira (개발·PM·QA 사용, 스프린트 단위 관리)
+- 화상회의: Google Meet (회사 Google Workspace 계정 사용)
+- 이메일: Google Workspace (company.com 도메인 계정)
+
+## 슬랙 채널 구조
+- #general: 전체 공지 (공지 외 대화 자제)
+- #announcement: 경영진 공지
+- #dev: 개발팀 기술 논의
+- #design: 디자인팀
+- #product: 프로덕트 기획·PM
+- #marketing: 마케팅팀
+- #hr: 인사 공지·복지 안내
+- #finance: 경리·지출 문의
+- #lunch: 점심 모임 자율 모집
+- #random: 자유 대화
+- #help-it: IT 장비·계정 문의
+
+## 개발 프로세스 (개발자 직군 해당)
+- 브랜치 전략: Git Flow (main/develop/feature/hotfix)
+- 코드 리뷰: PR 생성 후 팀원 2명 이상 Approve 필요
+- 리뷰 가이드라인: Notion > 개발팀 > 코드리뷰 가이드 참고
+- 배포: 스테이징 자동 배포 (develop 브랜치 머지 시), 프로덕션은 배포 담당자 수동 진행
+- 스프린트: 2주 단위, 매 스프린트 시작·종료일에 Planning·Retrospective 진행
+- 온콜: 담당자 로테이션, 슬랙 #oncall 채널 확인
+
+## 조직·문화
+- 호칭: 영어 이름 or 닉네임 사용 (명함에 기재)
+- 회의: 불필요한 회의 지양, 아젠다 없는 회의 금지 문화
+- 의사결정: 데이터 기반 논의 선호, Notion에 결정 사항 기록
+- 피드백: 분기별 360도 피드백, 1on1 팀장 정기 진행
+
+## 입사 첫 주 체크리스트
+1. 계정 세팅: Google·Slack·Notion·GitHub·Jira 초대 메일 확인
+2. 노트북·장비 수령: IT 담당자 or HR 문의
+3. 출입증 수령: HR 데스크
+4. 팀 온보딩 미팅: 팀장이 일정 안내
+5. 사내 규정 숙지: Notion > HR > 취업규칙 확인
+6. 긴급 연락처 저장: HR 담당자, IT 담당자, 팀장
+
+## 답변 지침
+- 한국어로, 친절하고 명확하게 답변하세요
+- 3~6문장 이내로 핵심만 전달하세요
+- 직군(${role})에 맞는 내용을 우선 안내하세요
+- 확실하지 않은 정보는 "HR 담당자(#hr 채널)에게 확인하세요"라고 안내하세요
+- 관련 슬랙 채널이나 Notion 위치를 함께 안내하면 더 좋습니다`;
+
 
   async function send(text) {
     const userMsg = text || input.trim();
@@ -207,8 +308,17 @@ function ChatDemo() {
         {loading && <div className="msg bot"><span className="msg-label">AI 어시스턴트</span><div className="msg-bubble typing">답변 생성 중...</div></div>}
         <div ref={bottomRef} />
       </div>
-      <div className="quick-btns">
-        {QUICK.map(q => <button key={q} className="quick-btn" onClick={() => send(q)}>{q}</button>)}
+      <div className="quick-cats">
+        {QUICK_CATEGORIES.map(cat => (
+          <div key={cat.label}>
+            <div className="quick-cat-label">{cat.label}</div>
+            <div className="quick-cat-row">
+              {cat.questions.map(q => (
+                <button key={q} className="quick-btn" onClick={() => send(q)}>{q}</button>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
       <div className="chat-input-row">
         <input className="chat-input" placeholder="궁금한 것을 입력하세요..." value={input}
