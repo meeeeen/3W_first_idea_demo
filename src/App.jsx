@@ -3,114 +3,130 @@ import { useState, useRef, useEffect } from "react";
 // ── 데이터 ────────────────────────────────────────────────
 const TASK_GROUPS = {
   공통: [
-    { id: "t01", label: "출입증 수령",                  desc: "HR 데스크에서 수령" },
-    { id: "t02", label: "노트북 · 장비 수령",            desc: "IT 담당자에게 수령 확인" },
-    { id: "t03", label: "Google Workspace 계정 설정",   desc: "회사 이메일·캘린더 세팅" },
-    { id: "t04", label: "Slack 가입 및 채널 구독",       desc: "#general #hr #lunch 등 필수 채널" },
-    { id: "t05", label: "Notion 접속 및 사내 위키 열람", desc: "취업규칙·복지 가이드 확인" },
-    { id: "t06", label: "팀 온보딩 미팅 참석",           desc: "팀장 주관 1:1 또는 팀 미팅" },
-    { id: "t07", label: "인사 서류 제출",                desc: "근로계약서·개인정보 동의서 등" },
-    { id: "t08", label: "보안 교육 이수",                desc: "정보보안 서약서 서명 포함" },
+    { id: "t01", label: "출입증 및 사원증 발급",        desc: "원무과·총무팀에서 수령, 출입 가능 구역 확인" },
+    { id: "t02", label: "노트북·업무 장비 수령",         desc: "IT 담당자에게 수령 확인, 초기 세팅 요청" },
+    { id: "t03", label: "병원 그룹웨어 계정 설정",       desc: "이메일·전자결재·인트라넷 계정 활성화" },
+    { id: "t04", label: "메신저·협업 툴 가입",           desc: "병원 내 채널 구독 및 프로필 설정" },
+    { id: "t05", label: "사내 위키·규정집 열람",         desc: "취업규칙·복지 가이드·의료 보안 정책 확인" },
+    { id: "t06", label: "팀 온보딩 미팅 참석",           desc: "진료과장·팀장 주관 1:1 또는 팀 오리엔테이션" },
+    { id: "t07", label: "인사 서류 제출",                desc: "근로계약서·개인정보 동의·면허 사본 제출" },
+    { id: "t08", label: "의료 정보보안 교육 이수",       desc: "환자 개인정보 보호·보안 서약서 서명" },
   ],
-  개발자: [
-    { id: "d01", label: "GitHub 조직 초대 수락",  desc: "개발팀 Org 접근 권한 확인" },
-    { id: "d02", label: "로컬 개발 환경 세팅",    desc: "README 기준으로 환경 구성" },
-    { id: "d03", label: "Jira 프로젝트 접근 설정", desc: "스프린트 보드 접근 확인" },
-    { id: "d04", label: "첫 PR 코드 리뷰 참여",   desc: "기존 PR에 리뷰어로 참여" },
+  의사: [
+    { id: "dr01", label: "EMR 시스템 사용법 교육",        desc: "전자의무기록 작성·처방·조회 실습" },
+    { id: "dr02", label: "의사 면허 및 자격 등록",        desc: "의무기록부·면허번호 시스템 등록" },
+    { id: "dr03", label: "진료과 프로세스 숙지",          desc: "진료 흐름·협진 요청·수술 신청 절차" },
+    { id: "dr04", label: "당직 스케줄 확인 및 동의",      desc: "당직표 수령·당직 수당 산정 방식 확인" },
+    { id: "dr05", label: "의료 컴플라이언스 교육",        desc: "의료법·진료기록 보관·환자 동의 절차" },
   ],
-  디자이너: [
-    { id: "ds01", label: "Figma 팀 접근 권한 요청", desc: "디자인팀 Figma 조직 초대" },
-    { id: "ds02", label: "디자인 시스템 열람",      desc: "컴포넌트·토큰 구조 파악" },
+  간호사: [
+    { id: "nu01", label: "간호 기록 시스템(NIS) 교육",   desc: "간호 기록 작성·투약 기록·활력징후 입력" },
+    { id: "nu02", label: "당직·야간 근무 스케줄 확인",   desc: "교대근무표 수령·인수인계 프로세스 숙지" },
+    { id: "nu03", label: "의약품 관리 교육",             desc: "마약류 관리·투약 오류 보고 절차 교육" },
+    { id: "nu04", label: "응급 대응 매뉴얼 숙지",        desc: "코드 블루·화재 대피·환자 낙상 보고 절차" },
   ],
-  PM: [
-    { id: "p01", label: "Jira 프로젝트 전체 열람",        desc: "로드맵·백로그·스프린트 현황" },
-    { id: "p02", label: "PRD 템플릿 확인",                desc: "Notion 기획 문서 형식 숙지" },
-    { id: "p03", label: "주요 이해관계자 미팅 일정 잡기", desc: "개발·디자인 팀장 1:1 예약" },
+  의료기사: [
+    { id: "mt01", label: "의료 장비 사용 교육",           desc: "담당 장비 조작·유지보수·안전 교육" },
+    { id: "mt02", label: "자격증·면허 시스템 등록",       desc: "해당 자격증 번호·발급일 시스템 등록" },
+    { id: "mt03", label: "검사 결과 보고 절차 숙지",      desc: "검사지 발행·이상 수치 보고 프로세스" },
   ],
-  마케터: [
-    { id: "m01", label: "마케팅 채널 접근 권한 획득", desc: "GA·Meta·검색광고 계정 추가" },
-    { id: "m02", label: "브랜드 가이드라인 열람",     desc: "Notion 브랜드 에셋 폴더 확인" },
+  원무행정: [
+    { id: "ad01", label: "원무 시스템(OCS) 교육",         desc: "접수·수납·예약 관리 시스템 실습" },
+    { id: "ad02", label: "건강보험 청구 프로세스 교육",   desc: "급여·비급여 항목·심사 청구 절차 숙지" },
+    { id: "ad03", label: "환자 민원 대응 매뉴얼 숙지",   desc: "불만 접수·에스컬레이션 절차 확인" },
   ],
 };
 
 const MOCK_EMPLOYEES = [
-  { id:1, name:"김지훈", role:"개발자", dept:"개발팀",    startDate:"2026-02-03", avatar:"김", status:"완료",  doneIds:["t01","t02","t03","t04","t05","t06","t07","t08","d01","d02","d03","d04"], taskKeys:["공통","개발자"] },
-  { id:2, name:"이수진", role:"디자이너", dept:"디자인팀", startDate:"2026-02-03", avatar:"이", status:"진행중", doneIds:["t01","t02","t03","t04","t05","t06","ds01"],                            taskKeys:["공통","디자이너"] },
-  { id:3, name:"박현우", role:"PM",      dept:"프로덕트팀",startDate:"2026-02-10", avatar:"박", status:"지연",  doneIds:["t01","t02","t03"],                                                      taskKeys:["공통","PM"] },
-  { id:4, name:"최아름", role:"마케터",  dept:"마케팅팀",  startDate:"2026-02-17", avatar:"최", status:"완료",  doneIds:["t01","t02","t03","t04","t05","t06","t07","t08","m01","m02"],            taskKeys:["공통","마케터"] },
-  { id:5, name:"정도윤", role:"개발자",  dept:"개발팀",    startDate:"2026-03-03", avatar:"정", status:"진행중", doneIds:["t01","t02"],                                                            taskKeys:["공통","개발자"] },
+  { id:1, name:"김민준", role:"내과 전공의", dept:"내과",    startDate:"2026-02-03", avatar:"김", status:"완료",
+    doneIds:["t01","t02","t03","t04","t05","t06","t07","t08","dr01","dr02","dr03","dr04","dr05"],
+    taskKeys:["공통","의사"] },
+  { id:2, name:"이지은", role:"수술실 간호사", dept:"수술실", startDate:"2026-02-03", avatar:"이", status:"진행중",
+    doneIds:["t01","t02","t03","t04","t05","t06","nu01"],
+    taskKeys:["공통","간호사"] },
+  { id:3, name:"박서준", role:"영상의학과 의사", dept:"영상의학과", startDate:"2026-02-10", avatar:"박", status:"지연",
+    doneIds:["t01","t02","t03"],
+    taskKeys:["공통","의사"] },
+  { id:4, name:"최수아", role:"원무팀 주임", dept:"원무팀",  startDate:"2026-02-17", avatar:"최", status:"완료",
+    doneIds:["t01","t02","t03","t04","t05","t06","t07","t08","ad01","ad02","ad03"],
+    taskKeys:["공통","원무행정"] },
+  { id:5, name:"정하늘", role:"응급실 간호사", dept:"응급실", startDate:"2026-03-03", avatar:"정", status:"진행중",
+    doneIds:["t01","t02"],
+    taskKeys:["공통","간호사"] },
 ].map(e => {
   const allTasks = e.taskKeys.flatMap(k => TASK_GROUPS[k]);
   return { ...e, tasks: { total: allTasks.length, done: e.doneIds.length } };
 });
 
 const MOCK_BURNOUT = [
-  { id:1, name:"박성민", dept:"개발팀",   role:"개발자",  overtime:16, consecutive:5, leaveRate:85, holiday:3 },
-  { id:2, name:"김나연", dept:"디자인팀", role:"디자이너", overtime:4,  consecutive:1, leaveRate:20, holiday:0 },
-  { id:3, name:"이준혁", dept:"프로덕트팀",role:"PM",     overtime:10, consecutive:3, leaveRate:60, holiday:2 },
-  { id:4, name:"최민서", dept:"마케팅팀", role:"마케터",  overtime:2,  consecutive:0, leaveRate:10, holiday:0 },
-  { id:5, name:"한소희", dept:"개발팀",   role:"개발자",  overtime:18, consecutive:6, leaveRate:90, holiday:4 },
-  { id:6, name:"오지훈", dept:"세일즈팀", role:"세일즈",  overtime:7,  consecutive:2, leaveRate:45, holiday:1 },
+  { id:1, name:"박성훈", dept:"응급의학과", role:"응급의학과 전문의", overtime:18, consecutive:6, leaveRate:85, holiday:3, onCall:8 },
+  { id:2, name:"김다은", dept:"외과",       role:"외과 수석간호사",   overtime:14, consecutive:5, leaveRate:70, holiday:2, onCall:6 },
+  { id:3, name:"이재원", dept:"내과",       role:"내과 전공의",       overtime:10, consecutive:3, leaveRate:60, holiday:2, onCall:5 },
+  { id:4, name:"최유진", dept:"소아과",     role:"소아과 간호사",     overtime:4,  consecutive:1, leaveRate:20, holiday:0, onCall:2 },
+  { id:5, name:"한수민", dept:"수술실",     role:"수술실 간호사",     overtime:16, consecutive:5, leaveRate:80, holiday:3, onCall:7 },
+  { id:6, name:"오태양", dept:"원무팀",     role:"원무 행정원",       overtime:3,  consecutive:0, leaveRate:10, holiday:0, onCall:0 },
 ];
 
 const QUICK_CATEGORIES = [
-  { label:"🏢 회사 생활",    questions:["점심시간이 몇 시야?","탄력근무제 어떻게 써?","야근하면 뭐 지원돼?","재택근무 가능해?"] },
-  { label:"🛠️ 업무 도구",   questions:["슬랙 채널 구조 알려줘","노션 어떻게 접속해?","지라 이슈 어떻게 만들어?","피그마 권한은 어떻게 받아?"] },
-  { label:"📋 인사 / 복지",  questions:["연차는 어떻게 신청해?","복지 제도가 뭐가 있어?","도서 지원 어떻게 받아?","장비 신청 어떻게 해?"] },
-  { label:"💻 개발 프로세스", questions:["코드 리뷰 프로세스가 어떻게 돼?","브랜치 전략이 어떻게 돼?","배포는 누가 해?","스프린트 사이클이 어떻게 돼?"] },
+  { label:"🏥 병원 생활",    questions:["점심시간은 언제야?","당직 수당은 어떻게 받아?","교대근무 패턴이 어떻게 돼?","재택근무 가능한 업무 있어?"] },
+  { label:"🛠️ 업무 시스템", questions:["EMR 로그인은 어떻게 해?","원무 시스템 어떻게 접속해?","당직표는 어디서 확인해?","검사 결과 조회는 어디서 해?"] },
+  { label:"📋 인사 / 복지",  questions:["연차는 어떻게 신청해?","건강검진은 언제 받아?","의료비 할인 혜택이 있어?","면허 갱신 지원 받을 수 있어?"] },
+  { label:"💊 의료 프로세스", questions:["처방 오류 발생 시 어떻게 해?","환자 동의서는 어디서 받아?","협진 요청 절차가 어떻게 돼?","의료 사고 보고는 어떻게 해?"] },
 ];
 
 const DEFAULT_SETTINGS = {
-  company:      "쓰리더블유",
-  industry:     "HR SaaS (인사관리 소프트웨어)",
-  workHours:    "09:00~18:00 (탄력근무 가능, 코어타임 10~16시)",
-  lunch:        "12:00~13:00 / 식대 월 10만원",
-  leave:        "월 1일 발생, HR 시스템에서 신청",
-  welfare:      "노트북 선택 지원, 도서비 월 3만원, 야근 야식 지원, 건강검진 연 1회",
-  slackChannels:"#general #dev #design #product #hr #lunch #random #help-it",
-  tools:        "Notion, Slack, Figma, GitHub, Jira, Google Workspace",
-  devProcess:   "Git Flow, PR 2명 이상 Approve, 2주 스프린트",
+  hospital:     "3W 의료 통합 플랫폼 데모 병원",
+  type:         "종합병원 (의료 통합 플랫폼 — CRM·EMR·근태·그룹웨어 연동)",
+  workHours:    "3교대 (주간 08:00~16:00 / 저녁 16:00~24:00 / 야간 00:00~08:00)",
+  lunch:        "12:00~13:00 / 구내식당 이용 또는 식대 월 15만원",
+  leave:        "월 1.5일 발생, 그룹웨어 전자결재로 신청",
+  welfare:      "의료비 할인 50%, 건강검진 연 1회, 면허 갱신 지원, 직원 식당 운영",
+  system:       "EMR(전자의무기록), OCS(처방전달), NIS(간호정보), PACS(영상), 그룹웨어",
+  compliance:   "의료법 준수, 환자 개인정보보호법, 의료기기 안전관리, 감염관리 지침",
+  process:      "진료 → EMR 기록 → 처방(OCS) → 검사(PACS/NIS) → 수납(원무) → 보험청구",
 };
 
 // ── 유틸 ────────────────────────────────────────────────
-function calcScore({ overtime, consecutive, leaveRate, holiday }) {
+// 번아웃 스코어: 초과근무(30) + 연속당직(25) + 연차미소진(20) + 휴일근무(10) + 온콜(15)
+function calcScore({ overtime, consecutive, leaveRate, holiday, onCall }) {
   return Math.round(Math.min(
-    Math.min(overtime / 20 * 35, 35) +
+    Math.min(overtime / 20 * 30, 30) +
     Math.min(consecutive / 7 * 25, 25) +
-    (leaveRate / 100) * 25 +
-    Math.min(holiday / 4 * 15, 15),
+    (leaveRate / 100) * 20 +
+    Math.min(holiday / 4 * 10, 10) +
+    Math.min((onCall || 0) / 8 * 15, 15),
     100
   ));
 }
 
-// 리스크 등급 → 색상 토큰 (동적이라 inline style로 사용)
 function getRisk(score) {
   if (score < 30) return { label:"정상", color:"#00e5a0", bg:"rgba(0,229,160,0.1)" };
   if (score < 55) return { label:"주의", color:"#ffd740", bg:"rgba(255,215,64,0.1)" };
   if (score < 75) return { label:"경고", color:"#ff9a3c", bg:"rgba(255,154,60,0.1)" };
-  return             { label:"위험", color:"#ff4d4d", bg:"rgba(255,77,77,0.1)" };
+  return             { label:"위험", color:"#ff4d4d",  bg:"rgba(255,77,77,0.1)" };
 }
 
 function getCare(score) {
-  if (score < 30) return [{ icon:"📱", t:"AI 힐링 앱 추천",          d:"명상 가이드 5분 · 수면 루틴 설정" }];
+  if (score < 30) return [
+    { icon:"📱", t:"의료진 전용 AI 힐링 앱", d:"교대근무 맞춤 수면 루틴 · 5분 명상 가이드" },
+  ];
   if (score < 55) return [
-    { icon:"📱", t:"AI 힐링 앱 — 감정 일기 시작", d:"주 3회 스트레스 체크인 권장" },
-    { icon:"🧘", t:"팀 단위 스트레칭 프로그램",   d:"주 1회 15분 · 출장 강사 연결" },
+    { icon:"📱", t:"AI 힐링 앱 — 감정 일기 시작",  d:"주 3회 스트레스 체크인 · 수면 패턴 분석" },
+    { icon:"🧘", t:"병원 현장 출장 스트레칭 강사", d:"진료과 단위 주 1회 15분 · 출장 강사 파견" },
   ];
   if (score < 75) return [
-    { icon:"💬", t:"비대면 심리상담 1회 연결",   d:"익명 처리 · 50분 · 즉시 예약" },
-    { icon:"🧘", t:"출장 명상/요가 강사 매칭",   d:"팀 단위 그룹 케어 프로그램" },
-    { icon:"📅", t:"연차 사용 권고 알림 발송",   d:"HR 담당자에게 자동 리포트 전송" },
+    { icon:"💬", t:"비대면 심리상담 1회 연결",      d:"익명 처리 · 50분 · 병원 복지 예산 연동" },
+    { icon:"🧘", t:"출장 명상/요가 강사 매칭",      d:"진료과 단위 그룹 케어 프로그램" },
+    { icon:"📅", t:"연차·당직 패턴 조정 권고",      d:"관리자(수간호사·과장) 자동 리포트 전송" },
   ];
   return [
-    { icon:"🚨", t:"긴급 심리상담 즉시 연결",        d:"당일 예약 · 전담 상담사 배정" },
-    { icon:"📅", t:"강제 연차 사용 권고",            d:"관리자 알림 + 일정 조율 지원" },
-    { icon:"🧘", t:"1:1 전담 웰니스 코치 매칭",      d:"2주 집중 케어 프로그램" },
-    { icon:"👥", t:"팀장 면담 자동 일정 요청",       d:"번아웃 원인 파악 및 업무 재조정" },
+    { icon:"🚨", t:"긴급 심리상담 즉시 연결",       d:"당일 예약 · 전담 상담사 배정 · 익명 처리" },
+    { icon:"📅", t:"당직 면제 및 연차 사용 권고",   d:"진료과장 알림 + 스케줄 재조정 지원" },
+    { icon:"🧘", t:"1:1 전담 웰니스 코치 매칭",     d:"2주 집중 케어 · 당직 후 회복 프로그램" },
+    { icon:"👥", t:"진료과장·수간호사 면담 연결",   d:"번아웃 원인 파악 및 업무 강도 재조정" },
   ];
 }
 
-// 온보딩 상태 → Tailwind 클래스
 function statusCls(status) {
   return {
     완료:  "bg-accent/10 text-accent",
@@ -119,7 +135,6 @@ function statusCls(status) {
   }[status] ?? "bg-white/5 text-muted";
 }
 
-// 온보딩 진행률 바 색상
 function progressColor(status) {
   return { 완료:"#00e5a0", 지연:"#ff4d4d", 진행중:"#ffd740" }[status] ?? "#ffd740";
 }
@@ -169,31 +184,29 @@ function SettingsPanel({ settings, onSave }) {
   };
 
   const fields = [
-    ["company",       "회사명"],
-    ["industry",      "업종"],
-    ["workHours",     "근무 시간"],
-    ["lunch",         "점심 / 식대"],
-    ["leave",         "연차 정책"],
-    ["welfare",       "복지 항목"],
-    ["slackChannels", "슬랙 채널"],
-    ["tools",         "주요 툴"],
-    ["devProcess",    "개발 프로세스"],
+    ["hospital",    "병원/기관명"],
+    ["type",        "기관 유형"],
+    ["workHours",   "근무 형태"],
+    ["lunch",       "점심 / 식대"],
+    ["leave",       "연차 정책"],
+    ["welfare",     "복지 항목"],
+    ["system",      "주요 시스템"],
+    ["compliance",  "컴플라이언스"],
+    ["process",     "진료 프로세스"],
   ];
 
   return (
     <div className="mb-5">
-      {/* 토글 헤더 */}
       <div
         onClick={() => setOpen(p => !p)}
         className="flex items-center justify-between bg-card border border-white/5 px-4 py-3 cursor-pointer mb-px transition-colors hover:bg-card2 select-none"
       >
         <span className="flex items-center gap-2.5 text-xs font-semibold text-muted-light">
-          🏢 회사 정보 커스텀 설정 — 챗봇이 이 정보를 기반으로 답변합니다
+          🏥 병원·기관 정보 커스텀 설정 — 챗봇이 이 정보를 기반으로 답변합니다
         </span>
-        <span className={`text-[10px] text-muted transition-transform ${open ? "rotate-180" : ""}`}>▼</span>
+        <span className={`text-[10px] text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}>▼</span>
       </div>
 
-      {/* 설정 본문 */}
       {open && (
         <div className="bg-card border border-white/5 border-t-0 p-5 animate-fadeSlideIn">
           <div className="grid grid-cols-2 gap-3">
@@ -229,9 +242,9 @@ function SettingsPanel({ settings, onSave }) {
 
 // ── 챗봇 ─────────────────────────────────────────────────
 function ChatDemo({ settings }) {
-  const [role,     setRole]     = useState("개발자");
+  const [role,     setRole]     = useState("내과 전공의");
   const [messages, setMessages] = useState([
-    { role:"bot", text:`안녕하세요 👋 저는 ${settings.company} AI 온보딩 어시스턴트입니다.\n입사 첫날 궁금한 것들을 편하게 물어보세요!` }
+    { role:"bot", text:`안녕하세요 👋 저는 ${settings.hospital} AI 온보딩 어시스턴트입니다.\n입사 첫날 궁금한 것들을 편하게 물어보세요!` }
   ]);
   const [input,   setInput]   = useState("");
   const [loading, setLoading] = useState(false);
@@ -240,20 +253,29 @@ function ChatDemo({ settings }) {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:"smooth" }); }, [messages]);
 
   const buildPrompt = () =>
-    `당신은 ${settings.company}의 AI 온보딩 어시스턴트입니다. 신규 입사자(직군: ${role})를 돕습니다.
+    `당신은 ${settings.hospital}의 AI 온보딩 어시스턴트입니다. 신규 의료진/직원(직종: ${role})을 돕습니다.
 
-회사명: ${settings.company} / 업종: ${settings.industry}
-근무: ${settings.workHours} / 점심: ${settings.lunch}
-연차: ${settings.leave} / 복지: ${settings.welfare}
-슬랙 채널: ${settings.slackChannels}
-툴: ${settings.tools}
-개발 프로세스: ${settings.devProcess}
+기관명: ${settings.hospital} / 기관 유형: ${settings.type}
+근무 형태: ${settings.workHours}
+점심/식대: ${settings.lunch}
+연차 정책: ${settings.leave}
+복지: ${settings.welfare}
+주요 시스템: ${settings.system}
+컴플라이언스: ${settings.compliance}
+진료 프로세스: ${settings.process}
 
-입사 첫 주 체크리스트: Google·Slack·Notion·GitHub·Jira 계정 확인 → 노트북·장비 수령 → 출입증 수령 → 팀 온보딩 미팅 → 사내 규정 숙지
-호칭: 영어 이름/닉네임 사용 / 의사결정: 데이터 기반, Notion에 기록 / 회의: 아젠다 없는 회의 지양
+첫 주 필수 체크리스트:
+- 출입증·사원증 수령
+- 노트북·업무 장비 수령
+- 그룹웨어·EMR·OCS 계정 활성화
+- 의료 정보보안 교육 이수
+- 팀 온보딩 미팅 참석
+- 인사 서류 및 면허 서류 제출
+
+중요 규정: 환자 개인정보는 철저히 보호, 의료 기록은 반드시 EMR에 기재, 오류 발생 시 즉시 보고.
 
 한국어로, 친절하고 명확하게, 3~6문장 이내로 답변하세요.
-직군(${role})에 맞는 내용을 우선 안내하고, 불확실하면 HR 담당자(#hr 채널) 확인을 권유하세요.`;
+직종(${role})에 맞는 내용을 우선 안내하고, 불확실하면 원무팀·HR 담당자 또는 수간호사에게 확인을 권유하세요.`;
 
   async function send(text) {
     const userMsg = text || input.trim();
@@ -300,21 +322,21 @@ function ChatDemo({ settings }) {
     <div className="animate-fadeSlideIn">
       {/* 셋업 바 */}
       <div className="bg-card border border-accent/10 px-5 py-4 mb-3">
-        <MonoLabel className="mb-3">ONBOARDING CHATBOT</MonoLabel>
+        <MonoLabel className="mb-3">MEDICAL ONBOARDING CHATBOT</MonoLabel>
         <div className="flex items-end gap-4">
           <div>
-            <label className="block text-[10px] text-muted mb-1.5">내 직군</label>
+            <label className="block text-[10px] text-muted mb-1.5">내 직종</label>
             <select
               value={role}
               onChange={e => setRole(e.target.value)}
               className="bg-bg border border-white/5 text-cream px-2.5 py-2 text-sm font-sans outline-none focus:border-accent transition-colors"
             >
-              {["개발자","디자이너","PM / 기획자","마케터","세일즈","HR 담당자","데이터 분석가"].map(r =>
+              {["내과 전공의","외과 전공의","응급의학과 전문의","수술실 간호사","응급실 간호사","병동 간호사","방사선사","임상병리사","원무 행정","의료 사무직"].map(r =>
                 <option key={r} style={{ background:"#0f1510" }}>{r}</option>
               )}
             </select>
           </div>
-          <span className="text-[11px] text-muted pb-0.5">← 직군 선택 시 관련 내용을 우선 안내해요</span>
+          <span className="text-[11px] text-muted pb-0.5">← 직종 선택 시 EMR·시스템·당직 등 맞춤 안내</span>
         </div>
       </div>
 
@@ -323,7 +345,7 @@ function ChatDemo({ settings }) {
         {messages.map((m, i) => (
           <div key={i} className={`flex flex-col gap-1 max-w-[80%] ${m.role === "user" ? "self-end items-end" : "self-start"}`}>
             <span className="font-mono text-[8px] text-muted tracking-wider">
-              {m.role === "user" ? "입사자" : "AI 어시스턴트"}
+              {m.role === "user" ? "신규 의료진" : "AI 온보딩 어시스턴트"}
             </span>
             <div className={`px-3.5 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap ${
               m.role === "user"
@@ -365,7 +387,7 @@ function ChatDemo({ settings }) {
         <input
           className="flex-1 bg-card border border-white/5 text-cream px-3.5 py-2.5 text-[13px] font-sans
                      outline-none focus:border-accent transition-colors placeholder:text-muted"
-          placeholder="궁금한 것을 입력하세요..."
+          placeholder="EMR 사용법, 당직 수당, 연차 신청 등 궁금한 것을 물어보세요..."
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
@@ -415,16 +437,14 @@ function HRDashboard() {
 
       {/* 목록 + 상세 */}
       <div className="grid gap-4" style={{ gridTemplateColumns:"1fr 380px" }}>
-        {/* 직원 테이블 */}
+        {/* 의료진 테이블 */}
         <div className="bg-card border border-white/5 overflow-hidden">
-          {/* 헤더 */}
           <div className="grid bg-surface border-b border-white/5"
                style={{ gridTemplateColumns:"36px 1fr 90px 95px 1fr 80px" }}>
-            {["","입사자","부서","입사일","온보딩 진행률","상태"].map((h, i) => (
+            {["","의료진","진료과","입사일","온보딩 진행률","상태"].map((h, i) => (
               <div key={i} className="px-3 py-2.5 font-mono text-[9px] text-muted tracking-[0.1em]">{h}</div>
             ))}
           </div>
-          {/* 행 */}
           {MOCK_EMPLOYEES.map(e => {
             const pct = Math.round(e.tasks.done / e.tasks.total * 100);
             const isSelected = selectedId === e.id;
@@ -436,35 +456,27 @@ function HRDashboard() {
                             ${isSelected ? "bg-accent/5 border-l-2 border-l-accent" : "hover:bg-white/[0.02]"}`}
                 style={{ gridTemplateColumns:"36px 1fr 90px 95px 1fr 80px" }}
               >
-                {/* 아바타 */}
                 <div className="px-3 py-3">
                   <div className="w-[26px] h-[26px] rounded-full bg-accent/10 border border-accent/10 flex items-center justify-center text-[10px] font-bold text-accent">
                     {e.avatar}
                   </div>
                 </div>
-                {/* 이름 */}
                 <div className="px-3 py-3">
                   <div className="text-[13px] font-semibold text-cream">{e.name}</div>
                   <div className="text-[10px] text-muted mt-0.5">{e.role}</div>
                 </div>
-                {/* 부서 */}
                 <div className="px-3 py-3 text-xs text-muted-light">{e.dept}</div>
-                {/* 입사일 */}
                 <div className="px-3 py-3 font-mono text-[11px] text-muted">{e.startDate}</div>
-                {/* 진행률 */}
                 <div className="px-3 py-3">
                   <div className="flex items-center gap-1.5">
                     <div className="flex-1 h-[3px] bg-white/5 relative">
-                      <div
-                        className="h-[3px] absolute top-0 left-0 progress-fill"
-                        style={{ width:`${pct}%`, background: progressColor(e.status) }}
-                      />
+                      <div className="h-[3px] absolute top-0 left-0 progress-fill"
+                           style={{ width:`${pct}%`, background: progressColor(e.status) }} />
                     </div>
                     <span className="font-mono text-[10px] text-muted-light w-7">{pct}%</span>
                   </div>
                   <div className="text-[10px] text-muted mt-0.5">{e.tasks.done}/{e.tasks.total} 완료</div>
                 </div>
-                {/* 상태 */}
                 <div className="px-3 py-3">
                   <span className={`inline-block px-2 py-0.5 text-[10px] font-semibold ${statusCls(e.status)}`}>
                     {e.status}
@@ -487,11 +499,10 @@ function HRDashboard() {
                 </svg>
               }
             >
-              왼쪽에서 입사자를 클릭하면<br/>온보딩 태스크 상세를 확인할 수 있어요
+              왼쪽에서 의료진을 클릭하면<br/>온보딩 태스크 상세를 확인할 수 있어요
             </EmptyState>
           ) : (
             <>
-              {/* 상세 헤더 */}
               <div className="px-4 py-4 border-b border-white/5">
                 <MonoLabel className="mb-2.5">ONBOARDING DETAIL</MonoLabel>
                 <div className="flex items-center gap-3">
@@ -506,40 +517,31 @@ function HRDashboard() {
                     {sel.status}
                   </span>
                 </div>
-                {/* 진행률 바 */}
                 <div className="mt-3.5">
                   <div className="flex justify-between text-[11px] text-muted mb-1.5">
                     <span>진행률</span>
                     <span><strong className="text-cream">{sel.tasks.done}</strong> / {sel.tasks.total} 완료</span>
                   </div>
                   <div className="h-[5px] bg-white/5 relative rounded-sm">
-                    <div
-                      className="h-[5px] absolute top-0 left-0 rounded-sm progress-fill"
-                      style={{ width:`${Math.round(sel.tasks.done / sel.tasks.total * 100)}%`, background: progressColor(sel.status) }}
-                    />
+                    <div className="h-[5px] absolute top-0 left-0 rounded-sm progress-fill"
+                         style={{ width:`${Math.round(sel.tasks.done / sel.tasks.total * 100)}%`, background: progressColor(sel.status) }} />
                   </div>
                 </div>
               </div>
 
-              {/* 태스크 목록 */}
               <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
                 {sel.taskKeys.map(groupKey => (
                   <div key={groupKey}>
                     <p className="font-mono text-[9px] text-muted tracking-[0.15em] mt-3.5 mb-2 first:mt-0">
-                      {groupKey === "공통" ? "📋 공통 온보딩" : `🔧 ${groupKey} 직군`}
+                      {groupKey === "공통" ? "📋 공통 온보딩" : `🔧 ${groupKey} 직종`}
                     </p>
                     {TASK_GROUPS[groupKey].map(task => {
                       const isDone = sel.doneIds.includes(task.id);
                       return (
-                        <div
-                          key={task.id}
-                          className={`flex items-start gap-2.5 px-2.5 py-2 mb-1 border transition-colors ${
-                            isDone
-                              ? "bg-accent/[0.04] border-accent/10"
-                              : "bg-white/[0.02] border-white/5"
-                          }`}
-                        >
-                          {/* 체크 */}
+                        <div key={task.id}
+                             className={`flex items-start gap-2.5 px-2.5 py-2 mb-1 border transition-colors ${
+                               isDone ? "bg-accent/[0.04] border-accent/10" : "bg-white/[0.02] border-white/5"
+                             }`}>
                           <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] shrink-0 mt-0.5 ${
                             isDone ? "bg-accent text-bg" : "border border-muted"
                           }`}>
@@ -572,6 +574,7 @@ function BurnoutPanel() {
   const [consecutive,  setConsecutive]  = useState(2);
   const [leaveRate,    setLeaveRate]    = useState(40);
   const [holiday,      setHoliday]      = useState(1);
+  const [onCall,       setOnCall]       = useState(3);
   const [scorerResult, setScorerResult] = useState(null);
 
   const employees = MOCK_BURNOUT.map(e => ({ ...e, score: calcScore(e) }));
@@ -579,20 +582,20 @@ function BurnoutPanel() {
   const selRisk    = sel ? getRisk(sel.score) : null;
 
   const sliders = [
-    { label:"주간 초과 근무", val:overtime,    set:setOvertime,    min:0, max:20,  unit:"h",  desc:"법정 40시간 초과분" },
-    { label:"연속 야근 일수", val:consecutive, set:setConsecutive, min:0, max:7,   unit:"일", desc:"최근 연속 야근" },
-    { label:"연차 미소진율",  val:leaveRate,   set:setLeaveRate,   min:0, max:100, unit:"%",  desc:"분기 기준 미사용 비율" },
-    { label:"월 휴일 근무",   val:holiday,     set:setHoliday,     min:0, max:4,   unit:"회", desc:"주말/공휴일 출근 횟수" },
+    { label:"주간 초과·당직 근무", val:overtime,    set:setOvertime,    min:0, max:20,  unit:"h",  desc:"법정 40시간 초과분 + 당직 시간" },
+    { label:"연속 야간 근무 일수", val:consecutive, set:setConsecutive, min:0, max:7,   unit:"일", desc:"3일 이상 연속 시 위험 플래그" },
+    { label:"연차 미소진율",       val:leaveRate,   set:setLeaveRate,   min:0, max:100, unit:"%",  desc:"분기 기준 미사용 비율" },
+    { label:"월 휴일·공휴일 근무", val:holiday,     set:setHoliday,     min:0, max:4,   unit:"회", desc:"주말/공휴일 당직 출근 횟수" },
+    { label:"월 온콜(On-Call) 횟수", val:onCall,    set:setOnCall,      min:0, max:8,   unit:"회", desc:"호출 대기 포함 실질 대응 횟수" },
   ];
 
   return (
     <div className="animate-fadeSlideIn">
-      {/* 상단: 직원 목록 + 케어 상세 */}
+      {/* 상단: 의료진 목록 + 케어 상세 */}
       <div className="grid gap-4 mb-4" style={{ gridTemplateColumns:"1.1fr 0.9fr" }}>
-        {/* 직원 목록 */}
         <div className="bg-card border border-white/5">
           <div className="px-4 py-3.5 border-b border-white/5">
-            <MonoLabel>직원 번아웃 리스크 현황 — 클릭 시 케어 플랜 확인</MonoLabel>
+            <MonoLabel>의료진 번아웃 리스크 현황 — 클릭 시 케어 플랜 확인</MonoLabel>
           </div>
           {employees.map(e => {
             const r = getRisk(e.score);
@@ -620,14 +623,13 @@ function BurnoutPanel() {
           })}
         </div>
 
-        {/* 케어 상세 */}
         <div className="bg-card border border-white/5 p-5">
           <MonoLabel className="mb-4">케어 플랜 상세</MonoLabel>
           {!sel ? (
             <EmptyState
               icon={<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>}
             >
-              왼쪽에서 직원을 선택하면<br/>리스크 분석과 케어 수단이 표시됩니다
+              왼쪽에서 의료진을 선택하면<br/>리스크 분석과 케어 수단이 표시됩니다
             </EmptyState>
           ) : (
             <>
@@ -637,13 +639,17 @@ function BurnoutPanel() {
                 <div className="text-[56px] font-black leading-none" style={{ color: selRisk.color }}>{sel.score}</div>
                 <span className="text-[11px] font-bold px-2 py-0.5" style={{ background: selRisk.bg, color: selRisk.color }}>{selRisk.label}</span>
               </div>
-              {/* 스코어 바 */}
               <div className="h-[3px] bg-white/5 relative mt-2.5 mb-3.5">
                 <div className="h-[3px] absolute top-0 left-0 progress-fill-slow" style={{ width:`${sel.score}%`, background: selRisk.color }} />
               </div>
-              {/* 수치 그리드 */}
               <div className="grid grid-cols-2 gap-x-3 gap-y-1 mb-4">
-                {[["주간 초과 근무",`${sel.overtime}h`],["연속 야근",`${sel.consecutive}일`],["연차 미소진율",`${sel.leaveRate}%`],["월 휴일 근무",`${sel.holiday}회`]].map(([k, v]) => (
+                {[
+                  ["초과·당직 근무", `${sel.overtime}h`],
+                  ["연속 야간 근무", `${sel.consecutive}일`],
+                  ["연차 미소진율",  `${sel.leaveRate}%`],
+                  ["휴일 근무",      `${sel.holiday}회`],
+                  ["온콜(On-Call)", `${sel.onCall}회`],
+                ].map(([k, v]) => (
                   <div key={k} className="text-[11px]">
                     <span className="text-muted">{k}: </span>
                     <span className="text-cream font-mono">{v}</span>
@@ -661,9 +667,8 @@ function BurnoutPanel() {
 
       {/* 개인 스코어러 */}
       <div className="bg-card border border-white/5 p-4">
-        <MonoLabel className="mb-4">직접 계산 — 개인 리스크 스코어러</MonoLabel>
+        <MonoLabel className="mb-4">직접 계산 — 의료진 번아웃 리스크 스코어러</MonoLabel>
         <div className="grid grid-cols-2 gap-5">
-          {/* 슬라이더 */}
           <div>
             {sliders.map(s => (
               <div key={s.label} className="mb-4">
@@ -676,14 +681,13 @@ function BurnoutPanel() {
               </div>
             ))}
             <button
-              onClick={() => setScorerResult(calcScore({ overtime, consecutive, leaveRate, holiday }))}
+              onClick={() => setScorerResult(calcScore({ overtime, consecutive, leaveRate, holiday, onCall }))}
               className="w-full bg-accent text-bg py-2.5 text-sm font-black font-sans hover:opacity-85 transition-opacity mt-1"
             >
               리스크 스코어 계산
             </button>
           </div>
 
-          {/* 결과 */}
           <div>
             {scorerResult === null ? (
               <EmptyState
@@ -696,7 +700,7 @@ function BurnoutPanel() {
               return (
                 <div>
                   <div className="text-center py-4 pb-3">
-                    <p className="font-mono text-[9px] text-muted tracking-[0.15em] mb-1.5">BURNOUT RISK SCORE</p>
+                    <p className="font-mono text-[9px] text-muted tracking-[0.15em] mb-1.5">MEDICAL BURNOUT RISK SCORE</p>
                     <div className="text-[60px] font-black leading-none" style={{ color: r.color }}>{scorerResult}</div>
                     <span className="inline-block px-3 py-1 text-[11px] font-bold mt-2" style={{ background: r.bg, color: r.color }}>{r.label}</span>
                   </div>
@@ -718,9 +722,9 @@ function BurnoutPanel() {
 
 // ── 앱 루트 ───────────────────────────────────────────────
 const TABS = [
-  { icon:"🤖", title:"AI 온보딩 챗봇",  sub:"입사자 Q&A · 실시간 스트리밍" },
-  { icon:"📊", title:"HR 온보딩 현황",  sub:"입사자별 진행률 모니터링" },
-  { icon:"🔥", title:"번아웃 리스크",   sub:"직원 위험군 감지 · 케어 추천" },
+  { icon:"🤖", title:"AI 온보딩 챗봇",   sub:"의료진 Q&A · 실시간 스트리밍" },
+  { icon:"📊", title:"의료진 온보딩 현황", sub:"직종별 진행률 · 태스크 상세" },
+  { icon:"🔥", title:"번아웃 리스크",     sub:"의료진 위험군 감지 · 케어 추천" },
 ];
 
 export default function App() {
@@ -733,13 +737,13 @@ export default function App() {
       <div className="text-center py-8 pb-7">
         <div className="inline-flex items-center gap-2 bg-accent/5 border border-accent/10 px-3.5 py-1.5 mb-4 font-mono text-[10px] text-accent tracking-widest2">
           <span className="w-1.5 h-1.5 rounded-full bg-accent animate-blink" />
-          LIVE DEMO — 3W HR SAAS
+          LIVE DEMO — 3W MEDICAL PLATFORM
         </div>
         <h1 className="text-3xl font-black tracking-tight mb-2">
           실시간 <em className="not-italic text-accent">기능 시연</em>
         </h1>
         <p className="text-[13px] text-muted leading-relaxed">
-          AI 온보딩 챗봇 · HR 대시보드 · 번아웃 리스크 스코어러
+          의료기관 AI 온보딩 · 의료진 온보딩 현황 · 번아웃 리스크 스코어러
         </p>
       </div>
 
